@@ -1,0 +1,6 @@
+build/
+dest/
+dist/
+*.class
+*.war
+*.log

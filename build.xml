@@ -1,45 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <project name="SampleBuild" default="war" basedir=".">
-    <taskdef resource="com/puppycrawl/tools/checkstyle/ant/checkstyle-ant-task.properties"
-         classpath="WebContent/WEB-INF/lib/checkstyle-7.8.2-all.jar"/>
-	<path id="compile.classpath">
+
+    <!-- ========================================= -->
+    <!-- Checkstyle Task Definition -->
+    <!-- ========================================= -->
+    <taskdef
+        resource="com/puppycrawl/tools/checkstyle/ant/checkstyle-ant-task.properties"
+        classpath="WebContent/WEB-INF/lib/checkstyle-7.8.2-all.jar"/>
+
+    <!-- ========================================= -->
+    <!-- Classpath -->
+    <!-- ========================================= -->
+    <path id="compile.classpath">
         <fileset dir="WebContent/WEB-INF/lib">
             <include name="*.jar"/>
         </fileset>
     </path>
+
+    <!-- ========================================= -->
+    <!-- Clean -->
+    <!-- ========================================= -->
+    <target name="clean">
+
+        <echo>Cleaning previous build...</echo>
+
+        <delete dir="build"/>
+        <delete dir="dist"/>
+        <delete dir="dest"/>
+
+        <delete file="checkstyle_errors.xml"/>
+        <delete file="TestCalculator_JUnitResult.xml"/>
+        <delete file="TestCalculator_JUnitResult.txt"/>
+        <delete file="TestCalculator_JUnitResult.txt.txt"/>
+
+        <delete>
+            <fileset dir="." includes="TEST-*.xml"/>
+        </delete>
+
+        <delete>
+            <fileset dir="." includes="TEST-*.txt"/>
+        </delete>
+
+    </target>
+
+    <!-- ========================================= -->
+    <!-- Initialize -->
+    <!-- ========================================= -->
     <target name="init">
+
         <mkdir dir="build/classes"/>
         <mkdir dir="dist"/>
+        <mkdir dir="dest"/>
+
     </target>
-    <target name="compile" depends="init">
-        <javac srcdir="src" debug="true" destdir="build/classes">
+
+    <!-- ========================================= -->
+    <!-- Compile -->
+    <!-- ========================================= -->
+    <target name="compile" depends="clean,init">
+
+        <echo>Compiling Java Source...</echo>
+
+        <javac
+                srcdir="src"
+                destdir="build/classes"
+                debug="true"
+                includeantruntime="false">
+
             <classpath refid="compile.classpath"/>
+
         </javac>
+
     </target>
-    <target name="checkstyle">
-        <checkstyle config="sun_checks.xml" failOnViolation="false"> 
-            <fileset dir="src/example" includes="**/*.java"/>
-            <formatter type="xml" toFile="checkstyle_errors.xml"/>
-        </checkstyle>
-    </target>
+
+    <!-- ========================================= -->
+    <!-- Run JUnit -->
+    <!-- ========================================= -->
     <target name="junit" depends="compile">
-        <junit printsummary="yes" haltonfailure="yes">
-              <classpath>
+
+        <echo>Running JUnit Tests...</echo>
+
+        <junit
+                fork="true"
+                printsummary="yes"
+                haltonfailure="true">
+
+            <classpath>
+
                 <pathelement location="build/classes"/>
-                <pathelement path="WebContent/WEB-INF/lib/junit.jar"/>
-                <pathelement path="WebContent/WEB-INF/lib/org.hamcrest.core_1.3.0.v201303031735.jar"/>
-              </classpath>
-              <test name="junit.TestCalculator" haltonfailure="no" outfile="TestCalculator_JUnitResult">
-                <formatter type="xml"/>
-              </test>
+
+                <path refid="compile.classpath"/>
+
+            </classpath>
+
+            <formatter
+                    type="plain"
+                    usefile="true"/>
+
+            <formatter
+                    type="xml"/>
+
+            <test
+                    name="junit.TestCalculator"
+                    outfile="TestCalculator_JUnitResult"/>
+
         </junit>
+
     </target>
-	<target name="war" depends="compile">
-        <war destfile="dest/SampleWebApp.war" webxml="WebContent/WEB-INF/web.xml">
+
+    <!-- ========================================= -->
+    <!-- Checkstyle -->
+    <!-- ========================================= -->
+    <target name="checkstyle" depends="compile">
+
+        <echo>Running Checkstyle...</echo>
+
+        <checkstyle
+                config="sun_checks.xml"
+                failOnViolation="false">
+
+            <fileset
+                    dir="src"
+                    includes="**/*.java"/>
+
+            <formatter
+                    type="xml"
+                    toFile="checkstyle_errors.xml"/>
+
+        </checkstyle>
+
+    </target>
+
+    <!-- ========================================= -->
+    <!-- Create WAR -->
+    <!-- ========================================= -->
+    <target name="war" depends="junit,checkstyle">
+
+        <echo>Creating WAR File...</echo>
+
+        <delete file="dest/SampleWebApp.war"/>
+
+        <war
+                destfile="dest/SampleWebApp.war"
+                webxml="WebContent/WEB-INF/web.xml">
+
             <fileset dir="WebContent"/>
-            <lib dir="WebContent/WEB-INF/lib"/>
+
             <classes dir="build/classes"/>
+
+            <lib dir="WebContent/WEB-INF/lib"/>
+
         </war>
+
+        <echo></echo>
+        <echo>======================================</echo>
+        <echo>BUILD SUCCESSFUL</echo>
+        <echo>WAR: dest/SampleWebApp.war</echo>
+        <echo>======================================</echo>
+
     </target>
 
 </project>
-
