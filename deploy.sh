@@ -8,7 +8,7 @@ WAR_FILE=dest/SampleWebApp.war
 
 echo "Stopping Tomcat..."
 
-$TOMCAT_HOME/bin/shutdown.sh
+$TOMCAT_HOME/bin/shutdown.sh || true
 
 sleep 5
 
@@ -16,6 +16,11 @@ sleep 5
 echo "Removing old application..."
 
 rm -rf $TOMCAT_HOME/webapps/SampleWebApp
+
+
+echo "Removing old WAR..."
+
+rm -f $TOMCAT_HOME/webapps/SampleWebApp.war
 
 
 echo "Deploying new WAR..."
