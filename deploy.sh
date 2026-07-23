@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 echo "=============================="
 echo "Starting Deployment"
 echo "=============================="
@@ -19,11 +21,18 @@ then
 
     $TOMCAT_HOME/bin/shutdown.sh
 
-    sleep 5
+    echo "Waiting for Tomcat to stop..."
+
+    while pgrep -f "org.apache.catalina.startup.Bootstrap" > /dev/null
+    do
+    sleep 1
+    done
+
+    echo "Tomcat stopped."
 
 else
 
-    echo "Tomcat is not running. Skipping stop."
+    echo "Tomcat is not running"
 
 fi
 
@@ -48,11 +57,17 @@ cp $WAR_FILE $TOMCAT_HOME/webapps/
 
 echo "Starting Tomcat..."
 
-$TOMCAT_HOME/bin/startup.sh
+
+export CATALINA_HOME=$TOMCAT_HOME
+export CATALINA_BASE=$TOMCAT_HOME
+
+
+nohup $TOMCAT_HOME/bin/startup.sh > /dev/null 2>&1 &
 
 
 
-sleep 10
+sleep 15
+
 
 
 echo "Checking deployment..."
@@ -62,13 +77,11 @@ if pgrep -f "org.apache.catalina.startup.Bootstrap" > /dev/null
 then
 
     echo "Tomcat is running"
-
     echo "Deployment Successful"
 
 else
 
     echo "Deployment Failed"
-
     exit 1
 
 fi
